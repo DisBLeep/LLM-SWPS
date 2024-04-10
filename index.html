@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Czat z Chatbotem</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+  <body>
+    <div id="chat-container">
+        <div id="chat-section"> 
+            <div id="chat-box"></div>
+            <input type="text" id="chat-input" placeholder="Wpisz pytanie...">
+            <button id="send-btn">Wyślij</button>
+            <input type="file" id="file-input" accept="application/pdf" style="display: none;"> 
+            <button id="upload-btn">Dodaj PDF</button> 
+        </div>
+        <div id="pdf-sidebar"> <!-- Nowy kontener dla plików PDF -->
+            <!-- Tutaj pojawią się linki do wybranych plików PDF -->
+        </div>
+    </div>
+    <script src="script.js"></script>
+  </body>
+  </html>
