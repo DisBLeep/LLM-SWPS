@@ -1,0 +1,19 @@
+Patryk
+- sprowadzić kod do pojedynczych plików .py
+- dopracować logikę rozdzielania pdf > text (oraz ich przechowywania)
+
+Dominika
+- Context-Prompt dla Agenta I który zamienia pytania użytkownika na frazę nadającą się pod trafny embedding
+- Context-Prompt dla Agenta II który buduje płynną odpowiedź na pytanie, posługując się dostanymi fragmentami tesktu
+
+Wiktoria
+- Prototyp interfejsu
+- Prototyp dwustronnej komunikacji z pajtonem.
+
+    Wystarczy nawet przykład w którym możemy odpalić poniższą funkcje i wyświetlić jej wynik
+
+    def test_interface(user_input):
+        return ''.join(c.upper() if i % 2 == 0 else c for i, c in enumerate(user_input))
+
+    test = test_interface("Hello World!")
+    print( test_interface("Hello World!") )
