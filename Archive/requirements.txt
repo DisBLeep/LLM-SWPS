@@ -1,0 +1,6 @@
+PyMuPDF
+openai
+pandas
+scikit-learn
+tqdm
+scipy
