@@ -65,6 +65,6 @@ def run(user_prompt):
 if __name__ == "__main__":
     run("Czy mały książe kochał różę?")
 
-# Opcjonalne inspekcje danych (zakomentowane dla przejrzystości skryptu)
-#inspect_pickle(PATH_LOG_QUERY)
-#inspect_pickle(PATH_LOG_RESULTS, RESULTS_TOP_X)
+    # Opcjonalne inspekcje danych (zakomentowane dla przejrzystości skryptu)
+    #inspect_pickle(PATH_LOG_QUERY)
+    #inspect_pickle(PATH_LOG_RESULTS, RESULTS_TOP_X)
