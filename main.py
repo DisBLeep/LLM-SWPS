@@ -62,7 +62,8 @@ def run(user_prompt):
                         print_results   = True)
 
 # Uruchomienie funkcji z przykładowym zapytaniem
-run("Czy mały książe kochał różę?")
+if __name__ == "__main__":
+    run("Czy mały książe kochał różę?")
 
 # Opcjonalne inspekcje danych (zakomentowane dla przejrzystości skryptu)
 #inspect_pickle(PATH_LOG_QUERY)
