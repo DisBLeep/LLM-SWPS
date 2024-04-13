@@ -1,7 +1,5 @@
 from ourfuncs import *
 
-from ourfuncs import *
-
 # Stałe konfiguracyjne używane w skrypcie
 MODEL_EMBEDDING         = "text-embedding-3-small"  # Nazwa modelu do generowania osadzeń tekstowych
 MODEL_NLP               = "gpt-3.5-turbo"           # Model przetwarzania języka naturalnego do interpretacji zapytań
