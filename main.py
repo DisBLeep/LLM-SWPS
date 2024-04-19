@@ -8,7 +8,7 @@ MODEL_NLP               = "gpt-4"
 # Prompt przekształcający pytanie użytkownika w stwierdzenie
 PREPROMPT_CONVERT_PL    = "Przekształć następujące pytanie użytkownika w jasne, zwięzłe stwierdzenie, odpowiednie do semantycznego porównania z tekstami, takimi jak książki, podręczniki lub dokumenty prawne. Stwierdzenie powinno wyraźnie opisywać główne działanie lub problem związany z pytaniem, nie formułując go jako zapytanie."
 PREPROMPT_CONVERT_EN    = "Convert the following user question into a clear, concise statement suitable for semantic comparison against texts such as books, manuals, or legal documents. The statement should explicitly describe the main action or concern of the question without posing it as a query."
-POSTPROMPT_PL           = "Twoim zadaniem jest odpowiedzieć na pytanie użytkownika używając podanych fragmentów. Cytuj verbatim pełnymi zdaniami. Odnoś się do numeru strony jeśli są Ci podane. Wykorzystaj jak najwięcej fragmentów aby zbudować argument"
+POSTPROMPT_PL           = "Twoim zadaniem jest odpowiedzieć na pytanie użytkownika używając podanych fragmentów. Musisz cytować verbatim. Odnoś się do numeru strony jeśli są Ci podane. Wykorzystaj jak najwięcej fragmentów aby zbudować argument"
 
 # Ścieżki do plików z logami
 PATH_LOG_QUERY          = "Logs/log_userqueries.pkl"     # Plik do zapisu zapytań użytkownika
