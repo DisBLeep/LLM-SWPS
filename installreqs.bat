@@ -1,0 +1,9 @@
+@echo off
+echo Updating pip...
+python -m pip install --upgrade pip
+echo Updating openai package...
+python -m pip install --upgrade openai
+echo Installing required packages...
+python -m pip install -r requirements.txt
+echo Installation and updates complete.
+pause

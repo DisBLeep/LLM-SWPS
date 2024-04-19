@@ -107,14 +107,22 @@ def process_pdfs(directory_path     ="Doc/",
 def send_and_receive_message(user_message,
                              pre_prompt,
                              print_chat=False, 
-                             model="gpt-3.5-turbo"):
+                             model="gpt-3.5-turbo",
+                             chat_inject_agreement=True):
     client  = OpenAI(api_key=apikey())
     
     # Create the message sequence for the chat model
-    messages = [
-        {"role": "system", "content": pre_prompt},
-        {"role": "user", "content": user_message},
-    ]
+    if chat_inject_agreement:
+        messages = [
+            {"role": "system", "content": pre_prompt},
+            {"role": "assistant", "content": "Ok"},
+            {"role": "user", "content": user_message},
+        ]
+    else:
+        messages = [
+            {"role": "system", "content": pre_prompt},
+            {"role": "user", "content": user_message},
+        ]
 
     # Create the chat completion with the specified model
     chat_completion = client.chat.completions.create(
@@ -130,7 +138,7 @@ def send_and_receive_message(user_message,
 
     # Print the conversation flow
     if print_chat:
-        print(f"Pre-Prompt: {pre_prompt}")
+        #print(f"Pre-Prompt: {pre_prompt}")
         print(f"User: {user_message}\nChat: {chat_response}")
     return chat_response
 
@@ -172,7 +180,8 @@ def process_user_query(save_path="Saved/query_history.pkl",
             user_message=user_input,
             pre_prompt=pre_prompt,
             print_chat=print_chat,
-            model=model)
+            model=model,
+            chat_inject_agreement=True)
 
         # Embedding the query
         query_embedded = get_embedding(query_text, embedding_model)
@@ -244,7 +253,7 @@ def return_similar_sentences(last_query_info,
         result_index        += 1
         index               = row.name
         surrounding_df      = get_surrounding_sentences(df, index, context_y)
-        surrounding_text    = " ".join(surrounding_df['Sentence'])
+        surrounding_text = " ".join(surrounding_df['Sentence']).replace('\n', ' ')
         result_row = {
             'Timestamp':    datetime.now(),
             'User Input':   last_query_info['User Input'],
@@ -270,3 +279,60 @@ def return_similar_sentences(last_query_info,
     # Save the updated results to a pickle file
     combined_results_df.to_pickle(results_path)
     return results_df
+
+def nlp_summary(user_query,
+                found_fragments,
+                model,
+                summary_prompt,
+                include_meta    =False,
+                print_context   =False,
+                print_response  =True):
+    
+# Pobieranie tekstu zapytania użytkownika
+    user_query_text = user_query['User Input']
+
+    # Przygotowanie DataFrame z fragmentami
+    df = found_fragments
+    if include_meta:
+        df['Formatted'] = df.apply(lambda row: f"(Fragment {row.name + 1}: {row['Document']} Page {row['Page']})\n\"{row['Text']}\"", axis=1)
+    else:
+        df['Formatted'] = df.apply(lambda row: f"\"{row['Text']}\"", axis=1)
+
+    # Łączenie fragmentów w jeden tekst
+    found_fragments_text = "\n".join(df['Formatted'].tolist())
+    postprompt_with_fragments = summary_prompt + "\n" + found_fragments_text
+    
+    if print_context:
+        print_line("Podany kontekst:")
+        print(postprompt_with_fragments)
+    if print_response:
+        print_line("Odpowiedź czatu:")
+
+    # Wysyłanie tekstu do modelu NLP i odbieranie odpowiedzi
+    chats_response = send_and_receive_message(user_query_text, 
+                                              postprompt_with_fragments, 
+                                              print_chat=print_response, 
+                                              model=model,
+                                              chat_inject_agreement=True)
+
+    # Konstrukcja DataFrame z wynikami
+    results_df = pd.DataFrame({
+        'Timestamp': [datetime.now()],
+        'summary_prompt': [summary_prompt],
+        'found_fragments': [found_fragments_text],
+        'user_query_text': [user_query_text],
+        'chats_response': [chats_response]
+    })
+
+    # Obsługa pliku pickle
+    pickle_filename = 'Logs/log_chatsummary.pkl'
+    try:
+        existing_df = pd.read_pickle(pickle_filename)
+        final_df = pd.concat([existing_df, results_df], ignore_index=True)
+    except FileNotFoundError:
+        final_df = results_df
+
+    # Zapisanie DataFrame do pliku pickle
+    final_df.to_pickle(pickle_filename)
+
+    return chats_response
