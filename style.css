@@ -63,6 +63,7 @@ C
     cursor: pointer;
     box-sizing: border-box;
 }
+
 #pdf-sidebar {
     width: 200px; /* Szerokość paska z PDF */
     border-left: 2px solid #40E0D0; /* Linia oddzielająca */

@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Czat z Chatbotem</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+    <link rel="stylesheet" href="mystyle.css">
+</head>
+  <body>
+    <div id="chat-container" class="container-fluid border">
+        <div class="row">
+            
+            <div id="sidebar" class="sidebar col-2 d-flex flex-column justify-content-between"> 
+                <!-- TRZEBA DODAĆ ZACIĄGANIE DOKUMENTÓW Z LISTY I TWORZENIE NOWYCH CHECKBOXÓW -->
+                <form>
+                    <h4 style="margin-top: 20px; margin-bottom: 50px">Twoje dokumenty</h4>
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" value="" id="flexCheckDefault">
+                        <label class="form-check-label" for="flexCheckDefault">
+                          Mały książę
+                        </label>
+                    </div>
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" value="" id="flexCheckChecked" checked>
+                        <label class="form-check-label" for="flexCheckChecked">
+                          Umowa
+                        </label>
+                    </div>
+                </form>
+            
+                <div style="margin-bottom: 10px">
+                    <input type="file" id="file-input" accept="application/pdf" style="display: none;"> 
+                    <button type="button" id="upload-btn" class="btn btn-primary w-100">Dodaj PDF</button> 
+                </div>
+            </div>
+
+            <div id="chat-section" class="col-10 border d-flex flex-column"> 
+                
+                <div class="message-area" style="height: 400px" >
+                
+                </div>
+
+                <div class="input-area mt-auto">
+                    <div class="row g-3">
+                        <form class="d-flex" >
+                            <div class="col" style="margin-bottom: 10px">
+                                <!-- <label for="userInput" class="form-label">Your Prompt</label> -->
+                                <input type="text" class="form-control me-0" id="userInput" name="prompt" placeholder="Zadaj pytanie" required>
+                            </div>
+                            <div class="col-auto" style="margin-bottom: 10px">
+                                <button type="submit" class="btn btn-primary ms-0">Wyślij</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            
+        </div>
+        
+    </div>
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
+    <script src="script.js"></script>
+  </body>
+  </html>
