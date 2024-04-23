@@ -10,13 +10,12 @@ from scipy.spatial.distance import cosine
 from flask import Flask, request, jsonify
 from werkzeug.utils import secure_filename
 from flask_cors import CORS
+#import cchardet
 
 # Flask app configuration
 UPLOAD_FOLDER = 'uploads'
 app = Flask(__name__)
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
-
-#import cchardet
 
 #-- BASIC FUNTIONS
 
@@ -303,41 +302,6 @@ def return_similar_sentences(last_query_info,
     combined_results_df.to_pickle(results_path)
     return results_df
 
-
-# Flask routes
-app = Flask(__name__)
-CORS(app)
-
-@app.route('/send-message', methods=['POST'])
-def send_message():
-    try:
-        user_message = request.json['message']
-        response_data = send_and_receive_message(user_message, '')
-        print(response_data)
-       
-        return response_data, 200, {'Content-Type': 'application/text'}
-    except Exception as e:
-        print(e)
-        return jsonify({'error': str(e)}), 500
-
-@app.route('/upload', methods=['POST'])
-def upload_file():
-    try:
-        if 'file' not in request.files:
-            return 'No file part', 400
-        file = request.files['file']
-        if file.filename == '':
-            return 'No selected file', 400
-        if file:
-            file_data = file.read()
-            with open('uploaded_file.pdf', 'wb') as f:
-                f.write(file_data)
-            return 'File uploaded successfully', 200
-    except Exception as e:
-        return jsonify({'error': str(e)}), 500
-
-if __name__ == '__main__':
-    app.run(debug=True)
 def nlp_summary(user_query,
                 found_fragments,
                 model,
@@ -394,3 +358,39 @@ def nlp_summary(user_query,
     final_df.to_pickle(pickle_filename)
 
     return chats_response
+
+#-- FLASK FUNCTIONS
+
+app = Flask(__name__)
+CORS(app)
+
+@app.route('/send-message', methods=['POST'])
+def send_message():
+    try:
+        user_message = request.json['message']
+        response_data = send_and_receive_message(user_message, '')
+        print(response_data)
+       
+        return response_data, 200, {'Content-Type': 'application/text'}
+    except Exception as e:
+        print(e)
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/upload', methods=['POST'])
+def upload_file():
+    try:
+        if 'file' not in request.files:
+            return 'No file part', 400
+        file = request.files['file']
+        if file.filename == '':
+            return 'No selected file', 400
+        if file:
+            file_data = file.read()
+            with open('uploaded_file.pdf', 'wb') as f:
+                f.write(file_data)
+            return 'File uploaded successfully', 200
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+if __name__ == '__main__':
+    app.run(debug=True)
