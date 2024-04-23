@@ -3,7 +3,7 @@ from ourfuncs import *
 # Stałe konfiguracyjne używane w skrypcie
 MODEL_EMBEDDING         = "text-embedding-3-large"  # Nazwa modelu do generowania osadzeń tekstowych
 #MODEL_NLP               = "gpt-3.5-turbo"           # Model przetwarzania języka naturalnego do interpretacji zapytań
-MODEL_NLP               = "gpt-4"
+MODEL_NLP               = "gpt-3.5-turbo"
 
 # Prompt przekształcający pytanie użytkownika w stwierdzenie
 PREPROMPT_CONVERT_PL    = "Przekształć następujące pytanie użytkownika w jasne, zwięzłe stwierdzenie, odpowiednie do semantycznego porównania z tekstami, takimi jak książki, podręczniki lub dokumenty prawne. Stwierdzenie powinno wyraźnie opisywać główne działanie lub problem związany z pytaniem, nie formułując go jako zapytanie."
