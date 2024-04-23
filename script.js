@@ -1,32 +1,50 @@
 document.getElementById('send-btn').addEventListener('click', sendMessage);
 document.getElementById('chat-input').addEventListener('keypress', function(e) {
-    if(e.key === 'Enter' && !e.shiftKey) {
+    if (e.key === 'Enter' && !e.shiftKey) {
         e.preventDefault();
         sendMessage();
     }
 });
-
-document.getElementById('upload-btn').addEventListener('click', function() {
-    document.getElementById('file-input').click(); 
-});
-
 document.getElementById('file-input').addEventListener('change', function() {
     var file = this.files[0];
     if (file) {
-        console.log("Wybrano plik:", file.name);
-        displayMessage(`Dodano plik: ${file.name}`, 'user');
+        console.log("Selected file:", file.name);
+        displayMessage(`Added file: ${file.name}`, 'user');
+        sendFile(file); 
     }
 });
 
+// Function to handle sending messages to the server
 function sendMessage() {
     var input = document.getElementById('chat-input');
     var message = input.value.trim();
-    if(message !== "") {
+    if (message !== "") {
         displayMessage(message, 'user');
-        input.value = ''; 
+        input.value = '';
+
+        var xhr = new XMLHttpRequest();
+        xhr.open("POST", "http://127.0.0.1:5000/send-message", true);
+        xhr.setRequestHeader("Content-Type", "application/json;charset=UTF-8");
+        xhr.responseType = 'text';
+        xhr.onreadystatechange = function() {
+            if (xhr.readyState === XMLHttpRequest.DONE) {
+                if (xhr.status === 200) {
+                    displayMessage(xhr.response, 'bot');
+                } else {
+                    console.error("Error sending message:", xhr.statusText);
+                }
+            }
+        };
+        xhr.send(JSON.stringify({ message: message }));
     }
 }
 
+
+// Function to send files to the server
+function sendFile(file) {
+}
+
+// Function to display messages in the chat box
 function displayMessage(message, sender) {
     var chatBox = document.getElementById('chat-box');
     var msgDiv = document.createElement('div');
@@ -34,29 +52,4 @@ function displayMessage(message, sender) {
     msgDiv.className = sender;
     chatBox.appendChild(msgDiv);
     chatBox.scrollTop = chatBox.scrollHeight;
-}
-// Obsługa przesyłania plików PDF
-document.getElementById('file-input').addEventListener('change', function() {
-    var file = this.files[0];
-    if (file) {
-        console.log("Wybrano plik:", file.name);
-        displayMessage(`Dodano plik: ${file.name}`, 'user');
-        addPdfLink(file.name); 
-    }
-});
-
-// Funkcja do dodawania linków do PDFów
-function addPdfLink(fileName) {
-    var pdfSidebar = document.getElementById('pdf-sidebar');
-    var link = document.createElement('a');
-    link.textContent = fileName;
-    link.href = '#'; 
-    link.className = 'pdf-link';
-    pdfSidebar.appendChild(link);
-
-    link.addEventListener('click', function(e) {
-        e.preventDefault();
-        // Tu możemy dodać funkcjonalność otwierającą PDF, np. w nowej zakładce
-        console.log("Kliknięto PDF:", fileName);
-    });
 }

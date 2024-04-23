@@ -10,7 +10,7 @@ body, html {
 
 #chat-container {
     display: flex;
-    flex-direction: row; /* Zmieniamy na układ poziomy */
+    flex-direction: row; 
     height: 100%;
     width: 100%;
     box-sizing: border-box;
@@ -65,13 +65,12 @@ C
 }
 
 #pdf-sidebar {
-    width: 200px; /* Szerokość paska z PDF */
-    border-left: 2px solid #40E0D0; /* Linia oddzielająca */
+    width: 200px; 
+    border-left: 2px solid #40E0D0; 
     padding: 10px;
-    overflow-y: auto; /* Przewijanie dla wielu plików */
+    overflow-y: auto; 
 }
 
-/* Styl dla linków do plików PDF */
 .pdf-link {
     display: block;
     color: #40E0D0;
