@@ -82,6 +82,8 @@ def run(user_prompt):
                         print_context   = True, #Print postprompt i fragmenty
                         print_response  = True)
     print
+    return chats_summary, user_query, found_fragments
+
 # Uruchomienie funkcji z przykładowym zapytaniem
 if __name__ == "__main__":
     run("Czy mały książe kochał różę?")
