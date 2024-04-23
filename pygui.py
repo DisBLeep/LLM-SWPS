@@ -1,18 +1,91 @@
 import sys
-from PyQt5.QtWidgets import (QApplication, QWidget, QVBoxLayout, QHBoxLayout, QPushButton, QTextEdit, QLineEdit,
-                             QSplitter,QListWidget, QMenuBar, QAction, QDialog, QFormLayout, QLabel, QDialogButtonBox)
-from PyQt5.QtWidgets import (QDialog, QFormLayout, QLabel, QCheckBox, QListWidgetItem, QLineEdit, QDialogButtonBox, QTextEdit, QComboBox, QVBoxLayout, QGroupBox)
-from PyQt5.QtGui import QTextCursor, QFont
-from PyQt5.QtCore import Qt, QObject, pyqtSignal
+import os  # Add this if you are using os.listdir in your list_pdf_files function
+from PyQt5.QtWidgets import QApplication, QWidget, QVBoxLayout, QHBoxLayout, QPushButton, QLineEdit, \
+    QSplitter, QListWidget, QListWidgetItem, QMenuBar, QAction, QDialog, QFormLayout, QLabel, QDialogButtonBox, \
+    QComboBox, QGroupBox, QTextEdit
+from PyQt5.QtGui import QFont, QColor, QTextCursor  # QColor added for color definitions
+from PyQt5.QtCore import Qt, QCoreApplication, QProcess
 from main import *  # Ensure 'run' can handle inputs and outputs correctly
-from PyQt5.QtCore import QCoreApplication, QProcess
-import sys
+from PyQt5.QtWidgets import QLabel, QWidget, QHBoxLayout
+from PyQt5.QtCore import pyqtSignal, QObject
+import subprocess
+import time
+
+stylesheet = """
+QWidget {
+    background-color: white;  /* Light grey background */
+    color: #333;               /* Dark grey text */
+    font-family: 'Roboto';     /* Consistent font-family */
+    font-size: 15px;           /* Consistent font size */
+}
+
+QPushButton, QComboBox, QLineEdit, QListWidget {
+    background-color: white;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    padding: 6px;
+    margin: 4px;
+}
+
+QPushButton:hover {
+    background-color: #e0e0e0;
+}
+
+QMenuBar {
+    background-color: #e0e0e0;
+}
+
+QMenuBar::item:selected {
+    background-color: #d0d0d0;
+}
+
+QMenuBar::item:pressed {
+    background-color: #c0c0c0;
+}
+
+QTextEdit, QListWidget {
+    background-color: white;
+    border: 1px solid #ccc;
+}
+
+/* Specific styles for chat bubbles */
+QLabel {
+    border-radius: 10px;
+    padding: 10px;
+}
+
+/* Outgoing messages - right aligned */
+QLabel[alignment='2'] {  /* Qt.AlignRight is 2 */
+    background-color: #007bff;  /* Blue background for outgoing */
+    color: white;
+    margin-right: 20px;  /* Margins to offset from the screen edges */
+    margin-left: 100px;
+}
+
+/* Incoming messages - left aligned */
+QLabel[alignment='1'] {  /* Qt.AlignLeft is 1 */
+    background-color: #e0e0e0;  /* Light grey for incoming */
+    color: black;
+    margin-left: 20px;
+    margin-right: 100px;
+}
+"""
+
 GUIFONTTYPE = "Roboto"
 GUIFONTSIZE = 15
 
 def list_pdf_files(directory):
     """ Returns a list of PDF files in the specified directory. """
     return [file for file in os.listdir(directory) if file.endswith('.pdf')]
+
+class EmittingStream(QObject):
+    text_written = pyqtSignal(str)
+
+    def write(self, text):
+        self.text_written.emit(str(text))
+
+    def flush(self):
+        pass
 
 class SettingsDialog(QDialog):
     def __init__(self, parent=None):
@@ -116,23 +189,25 @@ class SettingsDialog(QDialog):
         RESULTS_CONTEXT_Y       = int(self.resultsContextYEdit.text())
         super().accept()
 
-    def restartApplication(self):
-        # Restart the application
-        QApplication.quit()
-        QCoreApplication.instance().quit()
-        QProcess.startDetached(sys.executable, sys.argv)
-
 class ChatWindow(QWidget):
     def __init__(self):
         super().__init__()
-        # Redirecting sys.stdout and sys.stderr
         self.defaultFont = QFont(GUIFONTTYPE, GUIFONTSIZE)  # Default font and size
+
         self.initUI()
-        self.is_first_message = True
+        self.console_log = []  # List to store console outputs
+        self.debugWindow = None  # Initially, there is no debug window
+
+        # Redirecting stdout and stderr
+        self.stdout = sys.stdout
+        self.stderr = sys.stderr
+        sys.stdout = EmittingStream(text_written=self.normalOutputWritten)
+        sys.stderr = EmittingStream(text_written=self.normalOutputWritten)
 
     def initUI(self):
+        self.is_first_message = True
         self.setWindowTitle("Chatbot - EmbedoSzperacz")
-        self.setGeometry(300, 300, 1200, 800)  # Adjusted for better layout viewing
+        self.setGeometry(300, 300, 1200, 800)
         self.layout = QVBoxLayout(self)
 
         # Menu Bar
@@ -140,6 +215,22 @@ class ChatWindow(QWidget):
         settingsAction = QAction('Settings', self)
         settingsAction.triggered.connect(lambda: SettingsDialog(self).exec_())
         self.menuBar.addAction(settingsAction)
+
+        # Adding Restart Action
+        restartAction = QAction('Restart', self)
+        restartAction.triggered.connect(self.restartApplication)  # Connecting to the restart method
+        self.menuBar.addAction(restartAction)
+
+        # Adding Debug Window Action
+        debugAction = QAction('Debug', self)
+        debugAction.triggered.connect(self.showDebugWindow)
+        self.menuBar.addAction(debugAction)
+
+        # Toggle for is_first_message with icons
+        self.toggleFirstMessageAction = QAction(self.getToggleActionText(), self, checkable=True)
+        self.toggleFirstMessageAction.setChecked(self.is_first_message)
+        self.toggleFirstMessageAction.triggered.connect(self.toggleFirstMessage)
+        self.menuBar.addAction(self.toggleFirstMessageAction)
         self.layout.setMenuBar(self.menuBar)
 
         # Main horizontal splitter for chat and fragments
@@ -159,9 +250,9 @@ class ChatWindow(QWidget):
         # Chat area including the chat display and user input
         self.chatWidget = QWidget(self)
         self.chatLayout = QVBoxLayout(self.chatWidget)
-        self.chatDisplay = QTextEdit(self)
-        self.chatDisplay.setReadOnly(True)
+        self.chatDisplay = QListWidget(self)
         self.chatDisplay.setFont(self.defaultFont)
+        self.chatLayout.addWidget(self.chatDisplay)
         self.chatLayout.addWidget(self.chatDisplay)
 
         # User input and Send button at the bottom of chat
@@ -170,6 +261,8 @@ class ChatWindow(QWidget):
         sendButton = QPushButton('Send', self)
         sendButton.setFont(self.defaultFont)
         sendButton.clicked.connect(self.sendMessage)
+        self.userInput.returnPressed.connect(self.sendMessage)  # Connect the returnPressed signal
+
         inputLayout = QHBoxLayout()
         inputLayout.addWidget(self.userInput)
         inputLayout.addWidget(sendButton)
@@ -196,6 +289,42 @@ class ChatWindow(QWidget):
             item.setCheckState(Qt.Unchecked)
             self.pdfSidebar.addItem(item)
 
+    def showDebugWindow(self):
+        """Open a new window to display console outputs."""
+        if not hasattr(self, 'debugWindow') or self.debugWindow is None:
+            self.debugWindow = QDialog(self)
+            self.debugWindow.setWindowTitle("Console Output")
+            self.debugWindow.setGeometry(100, 100, 600, 400)
+            layout = QVBoxLayout()
+            self.consoleDisplay = QTextEdit()
+            self.consoleDisplay.setReadOnly(True)
+            layout.addWidget(self.consoleDisplay)
+            self.debugWindow.setLayout(layout)
+            self.debugWindow.finished.connect(self.onDebugWindowClose)
+
+        # Populate the text edit with the stored console log each time the window is opened
+        self.consoleDisplay.clear()  # Clear previous content
+        self.consoleDisplay.setText("\n".join(self.console_log))
+        self.debugWindow.show()
+
+    def onDebugWindowClose(self):
+        """Actions to perform when the debug window is closed."""
+        self.debugWindow = None  # Reset the window reference
+
+    def normalOutputWritten(self, text):
+        """Append text to the list and optionally to the QTextEdit in the debug window."""
+        self.console_log.append(text)  # Store output in the list
+        if hasattr(self, 'consoleDisplay'):  # Check if the debug window is initialized
+            self.consoleDisplay.moveCursor(QTextCursor.End)
+            self.consoleDisplay.insertPlainText(text)
+            self.consoleDisplay.moveCursor(QTextCursor.End)
+
+    def closeEvent(self, event):
+        """Reset sys.stdout and sys.stderr when the window is closed."""
+        sys.stdout = self.stdout
+        sys.stderr = self.stderr
+        super().closeEvent(event)
+
     def sendMessage(self):
         user_text = self.userInput.text().strip()
         if user_text:
@@ -203,18 +332,59 @@ class ChatWindow(QWidget):
                          if self.pdfSidebar.item(i).checkState() == Qt.Checked]
             if selected_pdfs == []:
                 self.is_first_message = False  # Update the state for the next message
-            self.displayMessage("User: " + user_text, right=True)
+            self.displayMessage(user_text, right=True)
             chat_response, is_first_message, found_fragments = run(user_text, self.is_first_message, selected_pdfs)
-            self.displayMessage("Chat: " + chat_response, right=False)
+            self.displayMessage(chat_response, right=False)
             if is_first_message:
                 self.updateFragmentsDisplay(found_fragments)
             self.is_first_message = False  # Update the state for the next message
+            self.toggleFirstMessageAction.setChecked(self.is_first_message)
+            self.toggleFirstMessageAction.setText(self.getToggleActionText())
             self.userInput.clear()
 
+    def restartApplication(self, *args, **kwargs):
+        script = sys.argv[0]  # Assuming the first argument is the script to run
+        subprocess.Popen([sys.executable, script] + sys.argv[1:])
+        QApplication.quit()
+
+    def getToggleActionText(self):
+        return "First Message: ON" if self.is_first_message else "First Message: OFF"
+
+    def toggleFirstMessage(self):
+        self.is_first_message = self.toggleFirstMessageAction.isChecked()
+        self.toggleFirstMessageAction.setText(self.getToggleActionText())
+
+
     def displayMessage(self, message, right=False):
-        alignment = Qt.AlignRight if right else Qt.AlignLeft
-        self.chatDisplay.setAlignment(alignment)
-        self.chatDisplay.append(message)
+        # Create a container widget and a layout
+        widget = QWidget()
+        layout = QHBoxLayout()
+
+        # Create a label with the message text
+        label = QLabel(message)
+        label.setWordWrap(True)  # Enable word wrap
+        label.setFont(self.defaultFont)  # Set the font
+
+        # Apply bubble styling
+        if right:
+            label.setStyleSheet("QLabel { background-color: #007bff; color: white; border-radius: 10px; padding: 10px; }")
+            layout.setAlignment(Qt.AlignRight)
+        else:
+            label.setStyleSheet("QLabel { background-color: #e0e0e0; color: black; border-radius: 10px; padding: 10px; }")
+            layout.setAlignment(Qt.AlignLeft)
+
+        # Add label to layout and set the layout to the widget
+        layout.addWidget(label)
+        widget.setLayout(layout)
+
+        # Create a QListWidgetItem and set its size to match the widget
+        item = QListWidgetItem(self.chatDisplay)
+        item.setSizeHint(widget.sizeHint())
+
+        # Add the custom widget to the QListWidget
+        self.chatDisplay.addItem(item)
+        self.chatDisplay.setItemWidget(item, widget)
+        self.chatDisplay.scrollToBottom()
 
     def updateFragmentsDisplay(self, fragments):
         self.fragmentsDisplay.clear()
@@ -236,6 +406,8 @@ class ChatWindow(QWidget):
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)
+    app.setStyleSheet(stylesheet)  # Apply the stylesheet
+
     ex = ChatWindow()
     ex.show()
     sys.exit(app.exec_())

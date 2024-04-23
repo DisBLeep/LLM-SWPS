@@ -7,7 +7,7 @@ from tqdm import tqdm
 from openai import OpenAI
 from datetime import datetime
 from scipy.spatial.distance import cosine
-
+import cchardet
 
 #-- BASIC FUNTIONS
 
@@ -92,9 +92,17 @@ def process_pdfs(directory_path     ="Doc/",
             data_list = []
 
             for page_num in tqdm(range(doc.page_count), desc=f"Embedding {os.path.basename(pdf_path)}", leave=False):
-                text = doc[page_num].get_text()
+                # Extract raw bytes for text from the PDF
+                raw_text = doc[page_num].get_text("text").encode('utf-8')
+                
+                # Detect encoding
+                encoding_result = cchardet.detect(raw_text)
+                encoding = encoding_result['encoding'] if encoding_result['encoding'] else 'utf-8'  # Fallback to 'utf-8' if encoding is None
+                text = raw_text.decode(encoding)
+
+
                 page_data = process_pdf_text(text, split_regex, min_words, embedding_model)
-                data_list.extend([(os.path.basename(pdf_path), page_num + 1, i+1, s[0], s[1]) for i, s in enumerate(page_data)])
+                data_list.extend([(os.path.basename(pdf_file), page_num + 1, i+1, s[0], s[1]) for i, s in enumerate(page_data)])
 
             # Save the data to a DataFrame then to a Pickle file
             df = pd.DataFrame(data_list, columns=['File', 'Page', 'Sentence Index', 'Sentence', 'Embedded Sentence'])

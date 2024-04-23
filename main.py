@@ -86,7 +86,14 @@ def run(user_prompt, first_message_flag, chosen_pdf_filenames):
                             include_meta    = True, #podaje numery stron i nazwe dokumentu do każdego fragmentu
                             print_context   = False, #Print postprompt i fragmenty
                             print_response  = False)
+        
+        df = found_fragments
+        df['Formatted'] = df.apply(lambda row: f"(Fragment {row.name + 1}: {row['Document']} Page {row['Page']})\n\"{row['Text']}\"", axis=1)
+        found_fragments_text = "\n".join(df['Formatted'].tolist())
+
+        LOCAL_CONTEXT += f"\n\nFragments: {found_fragments_text}"
     else:
+        print_line("Zwykły czat...")
         ongoing_messages = ONGOING_CONVO_PROMPT + LOCAL_CONTEXT
         next_response   = send_and_receive_message(user_message=user_prompt, 
                                                  pre_prompt=ongoing_messages, 
@@ -98,6 +105,7 @@ def run(user_prompt, first_message_flag, chosen_pdf_filenames):
     include_in_local = [f"User: {user_prompt}", f"Assistant: {chats_summary}"]
     for var in include_in_local:
         LOCAL_CONTEXT += "\n" + var
+    print(LOCAL_CONTEXT)
     return chats_summary, first_message_flag, found_fragments
 
 
