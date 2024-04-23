@@ -215,9 +215,14 @@ def process_user_query(save_path="Saved/query_history.pkl",
 
 #-- Comparison calculation and return
 
-def load_and_concatenate(directory="Saved"):
+def load_and_concatenate(directory="Saved", file_names=None):
     # List all pickle files in the directory
-    files = [os.path.join(directory, file) for file in os.listdir(directory) if file.endswith('.pkl')]
+    if file_names == None:
+        files = [os.path.join(directory, file) for file in os.listdir(directory) if file.endswith('.pkl')]
+    else:
+        file_names_pkl = [file.replace('.pdf', '.pkl') for file in file_names]
+        files = [os.path.join(directory, file) for file in file_names_pkl if file.endswith('.pkl')]
+    
     # Load and concatenate all DataFrames
     df_list = [pd.read_pickle(file) for file in files]
     return pd.concat(df_list, ignore_index=True)
@@ -233,8 +238,9 @@ def return_similar_sentences(last_query_info,
                              context_y      =2, 
                              directory      ="Saved", 
                              results_path   ="similar_results.pkl",
-                             print_results  =True):
-    df = load_and_concatenate(directory)
+                             print_results  =True,
+                             filenames = None):
+    df = load_and_concatenate(directory, filenames)
 
     # Normalize embeddings and calculate cosine similarity
     query_embedding = last_query_info['Query Embedded']
