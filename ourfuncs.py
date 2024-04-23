@@ -93,15 +93,15 @@ def process_pdfs(directory_path     ="Doc/",
 
             for page_num in tqdm(range(doc.page_count), desc=f"Embedding {os.path.basename(pdf_path)}", leave=False):
                 # Extract raw bytes for text from the PDF
-                raw_text = doc[page_num].get_text("text").encode('utf-8')
+                raw_text = doc[page_num].get_text("text")#.encode('utf-8')
                 
                 # Detect encoding
-                encoding_result = cchardet.detect(raw_text)
-                encoding = encoding_result['encoding'] if encoding_result['encoding'] else 'utf-8'  # Fallback to 'utf-8' if encoding is None
-                text = raw_text.decode(encoding)
+                #encoding_result = cchardet.detect(raw_text)
+                #encoding = encoding_result['encoding'] if encoding_result['encoding'] else 'utf-8'  # Fallback to 'utf-8' if encoding is None
+                #text = raw_text.decode(encoding)
 
 
-                page_data = process_pdf_text(text, split_regex, min_words, embedding_model)
+                page_data = process_pdf_text(raw_text, split_regex, min_words, embedding_model)
                 data_list.extend([(os.path.basename(pdf_file), page_num + 1, i+1, s[0], s[1]) for i, s in enumerate(page_data)])
 
             # Save the data to a DataFrame then to a Pickle file

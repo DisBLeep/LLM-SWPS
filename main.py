@@ -51,7 +51,7 @@ def run(user_prompt, first_message_flag, chosen_pdf_filenames):
                             model           = MODEL_NLP,
                             embedding_model = MODEL_EMBEDDING,
                             user_prompt     = user_prompt,
-                            print_chat      = False)
+                            print_chat      = True)
 
         print_line("Wyszukiwanie tekstów związanych z zapytaniem...")
         #clear_console()
@@ -67,7 +67,7 @@ def run(user_prompt, first_message_flag, chosen_pdf_filenames):
                             top_x           = RESULTS_TOP_X, 
                             context_y       = RESULTS_CONTEXT_Y,
                             results_path    = PATH_LOG_RESULTS,
-                            print_results   = False,
+                            print_results   = True,
                             filenames       = chosen_pdf_filenames)
         
         # Funkcja `nlp_summary` wykonuje następujące kroki:
@@ -84,8 +84,8 @@ def run(user_prompt, first_message_flag, chosen_pdf_filenames):
                             model           = MODEL_NLP,
                             summary_prompt  = POSTPROMPT_PL,
                             include_meta    = True, #podaje numery stron i nazwe dokumentu do każdego fragmentu
-                            print_context   = False, #Print postprompt i fragmenty
-                            print_response  = False)
+                            print_context   = True, #Print postprompt i fragmenty
+                            print_response  = True)
         
         df = found_fragments
         df['Formatted'] = df.apply(lambda row: f"(Fragment {row.name + 1}: {row['Document']} Page {row['Page']})\n\"{row['Text']}\"", axis=1)
@@ -109,9 +109,12 @@ def run(user_prompt, first_message_flag, chosen_pdf_filenames):
     return chats_summary, first_message_flag, found_fragments
 
 
-
+EMBED_ONLY_FLAG = False
 # Uruchomienie funkcji z przykładowym zapytaniem
 if __name__ == "__main__":
-    # Example usage:
-    response, first_message_flag, fragments = run("Czy mały książe kochał różę?", True, None)
-
+    if EMBED_ONLY_FLAG:
+        process_pdfs(embedding_model= MODEL_EMBEDDING,
+                    split_regex    = SPLIT_REGEX,
+                    min_words      = MIN_WORDS_IN_SENTENCE)
+    else:    
+        response, first_message_flag, fragments = run("Czy mały książe kochał różę?", True, None)

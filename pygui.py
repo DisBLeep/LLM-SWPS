@@ -27,6 +27,7 @@ QPushButton, QComboBox, QLineEdit, QListWidget {
     margin: 4px;
 }
 
+
 QPushButton:hover {
     background-color: #e0e0e0;
 }
