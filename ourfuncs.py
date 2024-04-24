@@ -10,7 +10,7 @@ from scipy.spatial.distance import cosine
 from flask import Flask, request, jsonify
 from werkzeug.utils import secure_filename
 from flask_cors import CORS
-#import cchardet
+import cchardet
 
 # Flask app configuration
 UPLOAD_FOLDER = 'uploads'
